@@ -3,7 +3,7 @@ Playing with raw image files.
 
 # Requirements
 Python distribution : Miniconda (https://docs.conda.io/en/latest/miniconda.html) or Anaconda  
-6Gb of RAM (8+ is better)
+6Gb of RAM (8+ is better)  
 GPU supporting CUDA with 2Gb of VRAM (optional)  
 
 # Python Packages
