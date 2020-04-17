@@ -34,7 +34,7 @@ def color2bayer(npImin, pattern = RGGBPattern, f_check = True):
         if not bayerVal:
             raise Exception(errMsg)
 
-    if npImin.shape[-1] == pattern.shape[2]:
+    if npImin.shape[2] == pattern.shape[2]:
         if npImin.ndim==3: # Single RGB image
             sY, sX = npImin.shape[0], npImin.shape[1]
             Ny = sY//pattern.shape[0] + 1
