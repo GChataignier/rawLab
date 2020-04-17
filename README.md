@@ -5,7 +5,7 @@ Feel free to experiment and modify them as you want !
 
 
 # Requirements
-Python distribution : Miniconda (https://docs.conda.io/en/latest/miniconda.html) or Anaconda  
+Python 3.7 distribution : Miniconda (https://docs.conda.io/en/latest/miniconda.html) or Anaconda  
 6Gb of RAM (8+ is better)  
 GPU supporting CUDA with 2Gb of VRAM (optional)  
 
