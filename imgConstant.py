@@ -12,33 +12,18 @@ import numpy as np
 ####################################################################################################
 UnityPattern = np.ones((1,1,3), dtype = bool)
 
-RGGBPattern = np.array(
-    [
-        [[1, 0],
-         [0, 0]],  # Red
+RGGBPattern = np.zeros((2,2,3), dtype = bool)
+RGGBPattern[:, :, 0] = [[1, 0],
+                        [0, 0]] # Red
+RGGBPattern[:, :, 1] = [[0, 1],
+                        [1, 0]] # Green
+RGGBPattern[:, :, 2] = [[0, 0],
+                        [0, 1]] # Blue
 
-        [[0, 1],
-         [1, 0]],  # Green
-
-        [[0, 0],
-         [0, 1]],  # Blue
-    ],
-    dtype=bool
-)
-
-bilinearDK = np.array([
-    [[1, 2, 1],
-     [2, 4, 2],
-     [1, 2, 1]],
-
-    [[0, 1, 0],
-     [1, 4, 1],
-     [0, 1, 0]],
-
-    [[1, 2, 1],
-     [2, 4, 2],
-     [1, 2, 1]],
-]) / 4
+bilinearDK = np.zeros([3,3,3])
+bilinearDK[:,:,0] = np.array([[1,2,1], [2,4,2], [1,2,1]])/4
+bilinearDK[:,:,1] = np.array([[0,1,0], [1,4,1], [0,1,0]])/4
+bilinearDK[:,:,2] = np.array([[1,2,1], [2,4,2], [1,2,1]])/4
 
 LaplacianKernel = -np.array([[1,1,1],
                              [1,-8,1],
