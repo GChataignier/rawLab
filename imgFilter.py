@@ -84,7 +84,7 @@ def imconvTorchCPU(imin, kernel):
 def linearDemosaicing(imin):
     kernel = bilinearDK
     Rchan = ndimage.convolve(imin[:,:,0], kernel[:,:,0], mode='constant', cval=0)
-    Gchan = ndimage.convolve(imin[:,:,1], kernel[:,:,1], mode='constant', cval=0)/2
+    Gchan = ndimage.convolve(imin[:,:,1], kernel[:,:,1], mode='constant', cval=0)
     Bchan = ndimage.convolve(imin[:,:,2], kernel[:,:,2], mode='constant', cval=0)
 
     lostY, lostX = kernel.shape[0]-1, kernel.shape[1]-1

@@ -18,9 +18,9 @@ RGGBPattern[:, :, 2] = [[0, 0],
                         [0, 1]] # Blue
 
 bilinearDK = np.zeros([3,3,3])
-bilinearDK[0,:,:] = np.array([[1,2,1], [2,4,2], [1,2,1]])/4
-bilinearDK[1,:,:] = np.array([[0,1,0], [1,4,1], [0,1,0]])/4
-bilinearDK[2,:,:] = np.array([[1,2,1], [2,4,2], [1,2,1]])/4
+bilinearDK[:,:,0] = np.array([[1,2,1], [2,4,2], [1,2,1]])/4
+bilinearDK[:,:,1] = np.array([[0,1,0], [1,4,1], [0,1,0]])/4
+bilinearDK[:,:,2] = np.array([[1,2,1], [2,4,2], [1,2,1]])/4
 
 imgFormat = ('.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.pbm', '.pgm', '.ppm')
 rawFormat = ('.cr2', '.nef', '.arw')
