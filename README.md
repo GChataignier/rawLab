@@ -25,5 +25,5 @@ One image is displayed at each step. Nothing is saved.
 
 # Notes  
 The code to RGB <-> HSV conversion is taken from :   
-# Code from https://stackoverflow.com/questions/2612361/convert-rgb-values-to-equivalent-hsv-values-using-python   
+https://stackoverflow.com/questions/2612361/convert-rgb-values-to-equivalent-hsv-values-using-python   
   
