@@ -24,6 +24,6 @@ Once demosaiced, the image is processed to make it appealing : white blance, exp
 One image is displayed at each step. Nothing is saved.   
 
 # Notes  
-The code to RGB <-> HSV conversion is taken from :   
+The code for RGB <-> HSV conversion is taken from :   
 https://stackoverflow.com/questions/2612361/convert-rgb-values-to-equivalent-hsv-values-using-python   
   
