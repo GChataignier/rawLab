@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+@author: Guillaume Chataignier
+"""
 ####################################################################################################
 ### Import
 ####################################################################################################
 import numpy as np
 import torch
 from scipy import ndimage
-from imgConstant import bilinearDK
+import imgConstant as imc
 
 ####################################################################################################
-### Filters functions
+### Convolution functions
 ####################################################################################################
 # Convolution 2D + multiple channels, chooses between CPU and GPU version
 def imconv2d(imin, kernel, gpuID = 0):
@@ -17,19 +20,21 @@ def imconv2d(imin, kernel, gpuID = 0):
     else:
         return imconvScipy(imin, kernel)
 
-
 # Convolution RGB using scipy convolve
-def imconvScipy(imin, kernel, f_valid = True):
+def imconvScipy(imin, kernel):
     # Kernel dimension: (Height, Width, Chan)
     # Image dimension : (Height, Width, Chan)
-    chan_out = [ndimage.convolve(imin[:,:,cc], kernel[:,:,cc], mode='constant', cval=0) for cc in range(imin.shape[2])]
     lostY, lostX = kernel.shape[0]-1, kernel.shape[1]-1
-    if f_valid:
-        bY, eY, bX, eX = int(np.floor(lostY/2)), int(np.ceil(lostY/2)), int(np.floor(lostX/2)), int(np.ceil(lostX/2))
+    bY, eY, bX, eX = int(np.floor(lostY/2)), int(np.ceil(lostY/2)), int(np.floor(lostX/2)), int(np.ceil(lostX/2))
+
+    if kernel.ndim == 2 and imin.ndim == 2:
+        return ndimage.convolve(imin, kernel, mode='constant', cval=0)[bY:-eY, bX:-eX] # Valid convolution
+
+    elif kernel.ndim == 3 and imin.ndim ==3 and kernel.shape[2]==imin.shape[2]:
+        chan_out = [ndimage.convolve(imin[:,:,cc], kernel[:,:,cc], mode='constant', cval=0) for cc in range(imin.shape[2])]
         return np.stack(chan_out, axis=2)[bY:-eY, bX:-eX] # Valid convolution
     else:
-        return np.stack(chan_out, axis=2)
-
+        raise Exception("Problem with dimensions")
 
 # Convolution RGB using pytorch conv2d, GPU
 # Faster than Scipy CPU version if CUDA is available
@@ -58,38 +63,44 @@ def imconvTorchGPU(imin, kernel,gpuID=0):
         raise Exception("Problem with dimensions")
 
 
-# Convolution RGB using pytorch conv2d, CPU
-# Useless, for testing only. Scipy version is better
-def imconvTorchCPU(imin, kernel):
-    # Kernel, numpy array of dimension: (Height, Width, Chan)
-    # Image, numpy array of dimension : (Height, Width, Chan)
-    device = torch.device('cpu')
-
-    if kernel.ndim == 2 and imin.ndim == 2:
-        kernel = torch.from_numpy(kernel[np.newaxis, np.newaxis].astype(imin.dtype)).to(device)
-        imin = torch.from_numpy(imin[np.newaxis, np.newaxis]).to(device)
-        return torch.nn.functional.conv2d(imin, kernel).squeeze().cpu().numpy()
-
-    elif kernel.ndim == 3 and imin.ndim ==3 and kernel.shape[2]==imin.shape[2]:
-        # Avoid huge RAM consumption by procesing each channel sequentially
-        kernel = torch.from_numpy(kernel.astype(imin.dtype)).unsqueeze(0).permute(0,3,1,2).to(device) # dims : batch=1, Chan, H, W
-        imin = torch.from_numpy(imin).unsqueeze(0).permute(0,3,1,2).to(device)
-        chan_out = [torch.nn.functional.conv2d(imin[0:1, cc:cc+1,:,:], kernel[0:1, cc:cc+1,:,:]) for cc in range(imin.shape[1])]
-        return torch.stack([chan_out[cc].squeeze() for cc in range(len(chan_out))], axis=2).cpu().numpy()
+####################################################################################################
+### Filters functions
+####################################################################################################
+# Compute Laplacian
+def Laplacian(imin):
+    kernel = imc.laplacianKernel
+    if imin.ndim == 3:
+        L = np.sum(imin, 2)
+        L= imconv2d(L, kernel)
+    elif imin.ndim == 2:
+        L = imconv2d(imin, kernel)
     else:
-        raise Exception("Problem with dimensions")
+        raise Exception("Invalid dimension")
+    return L
 
+def SobelX(imin):
+    kernel = imc.sobelXKernel
+    if imin.ndim == 3:
+        L = np.sum(imin, 2)
+        L= imconv2d(L, kernel)
+    elif imin.ndim == 2:
+        L = imconv2d(imin, kernel)
+    else:
+        raise Exception("Invalid dimension")
+    return L
 
-# Bilinear demosaicing perso
-def linearDemosaicing(imin):
-    kernel = bilinearDK
-    Rchan = ndimage.convolve(imin[:,:,0], kernel[:,:,0], mode='constant', cval=0)
-    Gchan = ndimage.convolve(imin[:,:,1], kernel[:,:,1], mode='constant', cval=0)
-    Bchan = ndimage.convolve(imin[:,:,2], kernel[:,:,2], mode='constant', cval=0)
+def SobelY(imin):
+    kernel = imc.sobelYKernel
+    if imin.ndim == 3:
+        L = np.sum(imin, 2)
+        L= imconv2d(L, kernel)
+    elif imin.ndim == 2:
+        L = imconv2d(imin, kernel)
+    else:
+        raise Exception("Invalid dimension")
+    return L
 
-    lostY, lostX = kernel.shape[0]-1, kernel.shape[1]-1
-    bY, eY, bX, eX = int(np.floor(lostY/2)), int(np.ceil(lostY/2)), int(np.floor(lostX/2)), int(np.ceil(lostX/2))
-    return np.stack([Rchan, Gchan, Bchan], axis=2)[bY:-eY, bX:-eX] # Valid convolution
-
+def Sobel(imin):
+    return np.sqrt(SobelX(imin)**2 + SobelY(imin)**2)
 
 # EOF

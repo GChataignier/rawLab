@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+@author: Guillaume Chataignier
+"""
 ###############################################################################
 ### Import
 ###############################################################################
 import numpy as np
+import matplotlib.pyplot as plt
 from imgConstant import RGGBPattern
 
 ####################################################################################################
@@ -23,7 +27,6 @@ def checkBayer(BP):
         flagVal=False
         errMsg = 'Bayer pattern must be boolean array in 3 dimensions.'
     return flagVal, errMsg
-
 
 # Full color images (single or pile) to bayered images given a CFA pattern
 def color2bayer(npImin, pattern = RGGBPattern, f_check = True):
@@ -52,7 +55,6 @@ def color2bayer(npImin, pattern = RGGBPattern, f_check = True):
 
     else:
         raise Exception('Input image and input pattern have not the same depth')
-
 
 # RAW images (single or pile) to bayered images given a CFA pattern
 def raw2bayer(npImin, pattern = RGGBPattern, f_check = True):
@@ -85,10 +87,37 @@ def raw2bayer(npImin, pattern = RGGBPattern, f_check = True):
         return np_imout
 
 ####################################################################################################
-### Other functions
+### Exposure functions
 ####################################################################################################
+def normalize(imin):
+    return (imin-imin.min()) / (imin.max() - imin.min())
+
+def simpleExposure(imin, EV):
+    exposureCoeff = 2**EV
+    return np.clip(imin * exposureCoeff, 0, 1) # -> exc = EXposure corrected
+
+
 def HDRfunc(imin, exposure=1, power=1, offset=0):
     return 1-np.exp(-exposure*(imin+offset)**power)
+
+
+####################################################################################################
+### Color functions
+####################################################################################################
+def setWB(imin, pCoord, extend, cR=1, cG=1, cB=1):
+    pY, pX = pCoord # -> coordinates of pixel supposed white
+    ext = extend # -> patches of size 2*ext+1
+    WBPatch = imin[pY-ext:pY+ext+1, pX-ext:pX+ext+1]
+    meanR = np.mean(WBPatch[:,:,0])
+    meanG = np.mean(WBPatch[:,:,1])
+    meanB = np.mean(WBPatch[:,:,2])
+    wbc = imin # wbc = White Balanced Corrected
+    wbc[:,:,0] *= cR/meanR
+    wbc[:,:,1] *= cG/meanG
+    wbc[:,:,2] *= cB/meanB
+    wbc /= wbc.max()
+    return wbc
+
 
 
 

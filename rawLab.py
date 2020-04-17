@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+@author: Guillaume Chataignier
+"""
 ####################################################################################################
 ### Import
 ####################################################################################################
 import os
 from time import time
+import torch
 import numpy as np
 import rawpy as rp
 import matplotlib.pyplot as plt
@@ -20,6 +24,7 @@ import imgIO as imio
 import imgModification as imm
 import imgFilter as imf
 
+
 ####################################################################################################
 ### RAW Processing
 ####################################################################################################
@@ -27,11 +32,19 @@ import imgFilter as imf
 rawPath = "./sample.CR2"
 rawNumpy, raw = imio.raw2numpy(rawPath)
 plt.matshow(rawNumpy, cmap='gray', aspect='equal')
+plt.title("RAW")
 
 # Applying Bayer pattern for better visualisation
 bayered = imm.raw2bayer(rawNumpy, pattern = imc.RGGBPattern)
 plt.figure()
 plt.imshow(bayered, aspect='equal')
+plt.title("Bayer RGB")
+
+# Showing bilinear kernel for demosaicing
+print("Bilinear Kernel red / blue : ")
+print(imc.bilinearDK[:,:,0])
+print("Bilinear Kernel green : ")
+print(imc.bilinearDK[:,:,1])
 
 # Bilinear Demosaicing using integrated rawPy/LibRaw
 start = time()
@@ -40,44 +53,78 @@ end = time()
 print("Ellapsed time for LibRaw's linear demosaicing : ", end-start)
 plt.figure()
 plt.imshow(debayeredUINT8, aspect='equal')
+plt.title("Demosaic, LibRaw")
 
 # Bilinear Demosaicing using convolution (CPU mode)
 start = time()
-debayeredPersoCPU = imf.linearDemosaicing(bayered)
+debayeredPersoCPU = imf.imconvScipy(bayered, imc.bilinearDK)
 end = time()
 print("Ellapsed time for handmade linear demosaicing (CPU) : ", end-start)
 plt.figure()
 plt.imshow(debayeredPersoCPU, aspect='equal')
+plt.title("Demosaic, hand CPU")
 
 # Bilinear Demosaicing using convolution (GPU mode)
-# Comment the following block if no GPU with CUDA is available
-###########################################################################
-import torch
-myDevice = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
-    torch.cuda.empty_cache()
+    # Do a small convolution to initialize pytorch
+    imf.imconvTorchGPU(np.random.rand(100,100,3), np.ones([3,3,3]))
+    start = time()
+    debayeredPersoGPU = imf.imconvTorchGPU(bayered, imc.bilinearDK)
+    end = time()
+    print("Ellapsed time for handmade linear demosaicing (GPU) : ", end-start)
+    plt.figure()
+    plt.imshow(debayeredPersoGPU, aspect='equal')
+    plt.title("Demosaic, hand GPU")
 
-start = time()
-debayeredPersoGPU = imf.imconvTorchGPU(bayered, imc.bilinearDK)
-end = time()
-print("Ellapsed time for handmade linear demosaicing (GPU) : ", end-start)
+
+####################################################################################################
+### Image Processing
+####################################################################################################
+# Normalize debayered image
+debayeredNorm = imm.normalize(debayeredPersoCPU)
 plt.figure()
-plt.imshow(debayeredPersoGPU, aspect='equal')
-###########################################################################
+plt.imshow(debayeredNorm, aspect='equal')
+plt.title("Normalized debayered image")
 
-# White Balance Correction (equalizing R,G,B average)
-meanR = np.mean(debayeredPersoCPU[:,:,0])
-meanG = np.mean(debayeredPersoCPU[:,:,1])
-meanB = np.mean(debayeredPersoCPU[:,:,2])
-
-wbc = debayeredPersoCPU
-wbc[:,:,0] /= meanR
-wbc[:,:,1] /= meanG
-wbc[:,:,2] /= meanB
-wbc /= wbc.max()
-
+# White Balance : selection of a supposed white pixel or small area
+wbc = imm.setWB(debayeredNorm, pCoord=(450,1450), extend=25, cR=1, cG=1, cB=0.95)
 plt.figure()
 plt.imshow(wbc, aspect='equal')
+plt.title("White Balanced image")
+
+# Simple exposure coefficient
+exc = imm.simpleExposure(wbc, EV=2.5)
+plt.figure()
+plt.imshow(exc, aspect='equal')
+plt.title("Simple exposure correction")
+
+# Blending
+E = 8
+P = 0.9
+O = 0
+x=np.arange(0, 3, 1e-3)
+y=1-np.exp(-E*(x+O)**P)
+plt.figure()
+plt.plot(x,y)
+plt.title("Blending curve")
+bld = imm.HDRfunc(wbc, exposure=E, power=P, offset=O)
+plt.figure()
+plt.imshow(bld, aspect='equal')
+plt.title("Blending correction")
+
+
+####################################################################################################
+### Some Metrics and filters
+####################################################################################################
+edgesLaplacian = imf.laplacian(bld)
+gradX = imf.SobelX(bld)
+gradY = imf.SobelY(bld)
+gradT = imf.Sobel(bld)
+
+plt.matshow(np.abs(edgesLaplacian), cmap="gray")
+plt.matshow(np.abs(gradX), cmap="gray")
+plt.matshow(np.abs(gradY), cmap="gray")
+plt.matshow(np.abs(gradT), cmap="gray")
 
 
 

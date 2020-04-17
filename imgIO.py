@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+@author: Guillaume Chataignier
+"""
 ####################################################################################################
 ### Import
 ####################################################################################################
@@ -26,7 +29,7 @@ def img2numpy(imName, f_verbose = False, f_keep3chan = True):
 
 def raw2numpy(rawPath, f_norm=True):
     raw = rp.imread(rawPath)
-    rawData = np.array(raw.raw_image)
+    rawData = np.array(raw.raw_image_visible)
     if f_norm:
         maxValue = rawData.max()
     else:
