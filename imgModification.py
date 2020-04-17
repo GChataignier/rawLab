@@ -118,7 +118,38 @@ def setWB(imin, pCoord, extend, cR=1, cG=1, cB=1):
     wbc /= wbc.max()
     return wbc
 
+# Code from https://stackoverflow.com/questions/2612361/convert-rgb-values-to-equivalent-hsv-values-using-python
+def rgb2hsv(imin):
+    maxv = np.amax(imin, axis=2)
+    maxc = np.argmax(imin, axis=2)
+    minv = np.amin(imin, axis=2)
+    minc = np.argmin(imin, axis=2)
+    hsv = np.zeros(imin.shape, dtype='float')
+    hsv[maxc == minc, 0] = np.zeros(hsv[maxc == minc, 0].shape)
+    hsv[maxc == 0, 0] = (((imin[..., 1] - imin[..., 2]) * 60.0 / (maxv - minv + np.spacing(1))) % 360.0)[maxc == 0]
+    hsv[maxc == 1, 0] = (((imin[..., 2] - imin[..., 0]) * 60.0 / (maxv - minv + np.spacing(1))) + 120.0)[maxc == 1]
+    hsv[maxc == 2, 0] = (((imin[..., 0] - imin[..., 1]) * 60.0 / (maxv - minv + np.spacing(1))) + 240.0)[maxc == 2]
+    hsv[maxv == 0, 1] = np.zeros(hsv[maxv == 0, 1].shape)
+    hsv[maxv != 0, 1] = (1 - minv / (maxv + np.spacing(1)))[maxv != 0]
+    hsv[..., 2] = maxv
+    return hsv
 
+def hsv2rgb(imin):
+    hi = np.floor(imin[..., 0] / 60.0) % 6
+    hi = hi.astype('uint8')
+    v = imin[..., 2].astype('float')
+    f = (imin[..., 0] / 60.0) - np.floor(imin[..., 0] / 60.0)
+    p = v * (1.0 - imin[..., 1])
+    q = v * (1.0 - (f * imin[..., 1]))
+    t = v * (1.0 - ((1.0 - f) * imin[..., 1]))
+    rgb = np.zeros(imin.shape)
+    rgb[hi == 0, :] = np.dstack((v, t, p))[hi == 0, :]
+    rgb[hi == 1, :] = np.dstack((q, v, p))[hi == 1, :]
+    rgb[hi == 2, :] = np.dstack((p, v, t))[hi == 2, :]
+    rgb[hi == 3, :] = np.dstack((p, q, v))[hi == 3, :]
+    rgb[hi == 4, :] = np.dstack((t, p, v))[hi == 4, :]
+    rgb[hi == 5, :] = np.dstack((v, p, q))[hi == 5, :]
+    return rgb
 
 
 

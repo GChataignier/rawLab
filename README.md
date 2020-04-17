@@ -19,8 +19,11 @@ conda install spyder (optional IDE)
 # How to use  
 In command prompt : python rawLab.py  
 In Spyder : just open and run rawLab.py  
-It will open sample.CR2 (grayscale), convert it to bayer RGB and demosaicing it using linear interpolation. One image is displayed at each step. Nothing is saved.   
+It will open sample.CR2 (grayscale), convert it to bayer RGB and demosaicing it using linear interpolation.  
+Once demosaiced, the image is processed to make it appealing : white blance, exposure blending, saturation...  
+One image is displayed at each step. Nothing is saved.   
 
 # Notes  
-White balancing is not finished at the end of the script.  
+The code to RGB <-> HSV conversion is taken from :   
+# Code from https://stackoverflow.com/questions/2612361/convert-rgb-values-to-equivalent-hsv-values-using-python   
   

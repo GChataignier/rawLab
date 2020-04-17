@@ -87,15 +87,15 @@ plt.imshow(debayeredNorm, aspect='equal')
 plt.title("Normalized debayered image")
 
 # White Balance : selection of a supposed white pixel or small area
-wbc = imm.setWB(debayeredNorm, pCoord=(450,1450), extend=25, cR=1, cG=1, cB=0.95)
+wbc_img = imm.setWB(debayeredNorm, pCoord=(450,1450), extend=25, cR=1, cG=1, cB=0.95)
 plt.figure()
-plt.imshow(wbc, aspect='equal')
+plt.imshow(wbc_img, aspect='equal')
 plt.title("White Balanced image")
 
 # Simple exposure coefficient
-exc = imm.simpleExposure(wbc, EV=2.5)
+exc_img = imm.simpleExposure(wbc_img, EV=2.5)
 plt.figure()
-plt.imshow(exc, aspect='equal')
+plt.imshow(exc_img, aspect='equal')
 plt.title("Simple exposure correction")
 
 # Blending
@@ -107,24 +107,44 @@ y=1-np.exp(-E*(x+O)**P)
 plt.figure()
 plt.plot(x,y)
 plt.title("Blending curve")
-bld = imm.HDRfunc(wbc, exposure=E, power=P, offset=O)
+blended_img = imm.HDRfunc(wbc_img, exposure=E, power=P, offset=O)
 plt.figure()
-plt.imshow(bld, aspect='equal')
-plt.title("Blending correction")
+plt.imshow(blended_img, aspect='equal')
+plt.title("Blended")
+
+# Set Saturation, hue, Luminance via HSV (then come back to RGB)
+cH = 0 # Additive coeff (color angle)
+cS = 1.6 # multiplicative coeff
+cV = 1.05 # multiplicative coeff
+hsv = imm.rgb2hsv(blended_img)
+hsv[:,:,0] += cH
+hsv[:,:,1] *= cS
+hsv[:,:,2] *= cV
+final_img = np.clip(imm.hsv2rgb(hsv), 0, 1)
+plt.figure()
+plt.imshow(final_img, aspect='equal')
+plt.title("Final")
 
 
 ####################################################################################################
 ### Some Metrics and filters
 ####################################################################################################
-edgesLaplacian = imf.laplacian(bld)
-gradX = imf.SobelX(bld)
-gradY = imf.SobelY(bld)
-gradT = imf.Sobel(bld)
+# edgesLaplacian = imf.Laplacian(final_img)
+# plt.matshow(np.abs(edgesLaplacian), cmap="gray")
 
-plt.matshow(np.abs(edgesLaplacian), cmap="gray")
-plt.matshow(np.abs(gradX), cmap="gray")
-plt.matshow(np.abs(gradY), cmap="gray")
-plt.matshow(np.abs(gradT), cmap="gray")
+# gradX = imf.SobelX(final_img)
+# plt.matshow(np.abs(gradX), cmap="gray")
+
+# gradY = imf.SobelY(final_img)
+# plt.matshow(np.abs(gradY), cmap="gray")
+
+# Compute edges
+gradT = imf.Sobel(final_img)
+plt.matshow(gradT, cmap="gray")
+
+
+
+
 
 
 

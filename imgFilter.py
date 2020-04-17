@@ -68,7 +68,7 @@ def imconvTorchGPU(imin, kernel,gpuID=0):
 ####################################################################################################
 # Compute Laplacian
 def Laplacian(imin):
-    kernel = imc.laplacianKernel
+    kernel = imc.LaplacianKernel
     if imin.ndim == 3:
         L = np.sum(imin, 2)
         L= imconv2d(L, kernel)
@@ -79,7 +79,7 @@ def Laplacian(imin):
     return L
 
 def SobelX(imin):
-    kernel = imc.sobelXKernel
+    kernel = imc.SobelXKernel
     if imin.ndim == 3:
         L = np.sum(imin, 2)
         L= imconv2d(L, kernel)
@@ -90,7 +90,7 @@ def SobelX(imin):
     return L
 
 def SobelY(imin):
-    kernel = imc.sobelYKernel
+    kernel = imc.SobelYKernel
     if imin.ndim == 3:
         L = np.sum(imin, 2)
         L= imconv2d(L, kernel)
