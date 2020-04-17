@@ -47,10 +47,10 @@ def color2bayer(npImin, pattern = RGGBPattern, f_check = True):
             Ny = sX//pattern.shape[0] + 1
             Nx = sX//pattern.shape[1] + 1
             tiledPattern = np.tile(pattern, (Ny, Nx, 1))
-            np_imout = np.zeros(npImin.shape, dtype=np.float32)
+            npImout = np.zeros(npImin.shape, dtype=np.float32)
             for ii in range(npImin.shape[0]):
-                np_imout[ii] = npImin[ii] * tiledPattern[:sY, :sX, :]
-            return np_imout
+                npImout[ii] = npImin[ii] * tiledPattern[:sY, :sX, :]
+            return npImout
 
     else:
         raise Exception('Input image and input pattern have not the same depth')
@@ -68,10 +68,10 @@ def raw2bayer(npImin, pattern = RGGBPattern, f_check = True):
         Nx = sX//pattern.shape[1] + 1
         tiledPattern = np.tile(pattern, (Ny, Nx, 1))
 
-        np_imout = np.zeros((sY, sX, pattern.shape[2]), dtype=np.float32)
+        npImout = np.zeros((sY, sX, pattern.shape[2]), dtype=np.float32)
         for ii in range(pattern.shape[2]):
-            np_imout[:,:,ii] = npImin * tiledPattern[:sY,:sX,ii]
-        return np_imout
+            npImout[:,:,ii] = npImin * tiledPattern[:sY,:sX,ii]
+        return npImout
 
     elif npImin.ndim==3: # Multiple images stacked in the 1st dimension
         sY, sX = npImin.shape[1], npImin.shape[2]
@@ -79,11 +79,11 @@ def raw2bayer(npImin, pattern = RGGBPattern, f_check = True):
         Nx = sX//pattern.shape[1] + 1
         tiledPattern = np.tile(pattern, (Ny, Nx, 1))
 
-        np_imout = np.zeros((npImin.shape[0], sY, sX, pattern.shape[2]), dtype=np.float32)
+        npImout = np.zeros((npImin.shape[0], sY, sX, pattern.shape[2]), dtype=np.float32)
         for jj in range(npImin.shape[0]):
             for ii in range(pattern.shape[2]):
-                np_imout[jj, :,:,ii] = npImin[jj] * tiledPattern[:sX,:sY,ii]
-        return np_imout
+                npImout[jj, :,:,ii] = npImin[jj] * tiledPattern[:sX,:sY,ii]
+        return npImout
 
 ####################################################################################################
 ### Exposure functions
